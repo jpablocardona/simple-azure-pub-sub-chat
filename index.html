@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat 1 to 1</title>
+</head>
+<body>
+    <input id="messageInput" type="text" placeholder="Enter your message">
+    <button id="sendButton">Send</button>
+    <div id="chat"></div>
+
+    <script>
+        let socket;
+
+        async function connectToChat() {
+            const user = prompt("Enter your username");
+            const response = await fetch(`http://127.0.0.1:5000/negotiate?user=${user}`);
+            const data = await response.json();
+            socket = new WebSocket(data.url);
+
+            socket.onmessage = function (event) {
+                const chatDiv = document.getElementById('chat');
+                const messageElem = document.createElement('p');
+                messageElem.textContent = event.data;
+                chatDiv.appendChild(messageElem);
+            };
+        }
+
+        document.getElementById('sendButton').addEventListener('click', async () => {
+            const message = document.getElementById('messageInput').value;
+            const toUser = prompt("Enter recipient username");
+
+            await fetch('http://127.0.0.1:5000/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ from: 'current_user', to: toUser, message: message })
+            });
+        });
+
+        connectToChat();
+    </script>
+</body>
+</html>
